@@ -24,7 +24,7 @@ Extract those numbers from the byte string and send them back to the solution en
 
 ##### Getting the problem set
 
-[`GET /challenges/help_me_unpack/problem?access_token=a606a820e697cfab`](https://hackattic.com/challenges/help_me_unpack/problem?access_token=a606a820e697cfab)
+`GET /challenges/help_me_unpack/problem?access_token=<access_token>`
 
 Problem JSON format will be in the following format:
 
@@ -32,7 +32,7 @@ Problem JSON format will be in the following format:
 
 ##### Submitting a solution
 
-`POST /challenges/help_me_unpack/solve?access_token=a606a820e697cfab`
+`POST /challenges/help_me_unpack/solve?access_token=<access_token>`
 
 Solution JSON structure:
 
