@@ -12,7 +12,6 @@ export ACCESS_TOKEN="your_access_token_here"
 
 Replace `your_access_token_here` with your actual token.
 
----
 ## Progress
 
 - [ ]  Mini miner
@@ -33,5 +32,3 @@ Replace `your_access_token_here` with your actual token.
 - [ ]  Brute force ZIP
 - [ ]  Serving DNS
 - [ ]  Backup restore
-
----
