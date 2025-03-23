@@ -101,7 +101,11 @@ def main():
         
         # Extract text using GPT model
         extracted_text = extract_text_using_gpt(image_url)
-        
+
+        # Todo
+        # Implement custom local model to extract text from image
+        # Use approach similar to 'MNIST database of handwritten digits'
+
         # Compute the mathematical result
         result = compute_result(extracted_text)
         

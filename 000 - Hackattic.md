@@ -15,7 +15,7 @@ https://github.com/hitanshu-dhawan/Hackattic
 - [[Hackattic Challenge - Touch-Tone dialing]]
 - [[Hackattic Challenge - Basic face detection]] ✅
 - [[Hackattic Challenge - The one with Redis]]
-- [[Hackattic Challenge - Visual basic math]]
+- [[Hackattic Challenge - Visual basic math]] ✅
 - [[Hackattic Challenge - A global presence]]
 - [[Hackattic Challenge - WebSocket chit chat]]
 - [[Hackattic Challenge - Collision course]]

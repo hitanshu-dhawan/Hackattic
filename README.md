@@ -22,7 +22,7 @@ Replace `your_access_token_here` with your actual token.
 - [ ]  Touch-Tone dialing
 - [x]  Basic face detection
 - [ ]  The one with Redis
-- [ ]  Visual basic math
+- [x]  Visual basic math
 - [ ]  A global presence
 - [ ]  WebSocket chit chat
 - [ ]  Collision course
