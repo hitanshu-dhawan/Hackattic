@@ -1,8 +1,6 @@
 # Hackattic
 
-https://hackattic.com/challenges
-
-Solutions for Hackattic challenges
+Solutions for [Hackattic](https://hackattic.com/challenges) challenges.
 
 ## Setup
 
@@ -31,6 +29,6 @@ Replace `your_access_token_here` with your actual token.
 - [ ]  Hosting git
 - [ ]  Jotting JWTs
 - [x]  Reading QR
-- [ ]  Brute force ZIP
+- [x]  Brute force ZIP
 - [ ]  Serving DNS
 - [ ]  Backup restore

@@ -22,7 +22,7 @@ https://github.com/hitanshu-dhawan/Hackattic
 - [[Hackattic Challenge - Hosting git]]
 - [[Hackattic Challenge - Jotting JWTs]]
 - [[Hackattic Challenge - Reading QR]] ✅
-- [[Hackattic Challenge - Brute force ZIP]]
+- [[Hackattic Challenge - Brute force ZIP]] ✅
 - [[Hackattic Challenge - Serving DNS]]
 - [[Hackattic Challenge - Backup restore]]
 
