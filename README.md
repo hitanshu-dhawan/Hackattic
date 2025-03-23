@@ -20,7 +20,7 @@ Replace `your_access_token_here` with your actual token.
 - [ ]  Dockerized solutions
 - [ ]  Password hashing
 - [ ]  Touch-Tone dialing
-- [ ]  Basic face detection
+- [x]  Basic face detection
 - [ ]  The one with Redis
 - [ ]  Visual basic math
 - [ ]  A global presence
