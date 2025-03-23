@@ -5,6 +5,14 @@ import subprocess
 import time
 from io import BytesIO
 
+"""
+This script automates a known-plaintext attack on an encrypted ZIP file using pkcrack 
+(https://github.com/keyunluo/pkcrack). 
+
+The attack works by leveraging a plaintext file inside the ZIP (dunwich_horror.txt), 
+which allows recovering the encryption key and decrypting the archive.
+"""
+
 def get_zip_url():
     """Fetch the one-time ZIP file URL from the challenge API."""
     access_token = os.getenv("ACCESS_TOKEN")

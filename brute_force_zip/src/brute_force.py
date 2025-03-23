@@ -71,11 +71,11 @@ def main():
         print("Brute-force failed")
     
     # Delete the ZIP file
-    # try:
-    #     os.remove(zip_filename)
-    #     print(f"Deleted {zip_filename}")
-    # except Exception as e:
-    #     print(f"Failed to delete {zip_filename}: {e}")
+    try:
+        os.remove(zip_filename)
+        print(f"Deleted {zip_filename}")
+    except Exception as e:
+        print(f"Failed to delete {zip_filename}: {e}")
     
     print(f"Time taken: {time.time() - start_time:.2f} seconds")
 
