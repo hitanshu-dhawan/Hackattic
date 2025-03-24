@@ -3,6 +3,7 @@ import asyncio
 import websockets
 import time
 import requests
+import re
 
 # API Endpoints
 BASE_URL = "https://hackattic.com"
@@ -70,11 +71,12 @@ async def websocket_chit_chat():
                     # Ignore this message, continue listening for the next ping
                     continue
 
-                if "secret" in message:
+                if message.startswith("congratulations!"):
                     # Extract secret key and submit it
                     print("[INFO] Received secret message!")
-                    secret_data = eval(message)  # Convert received string to dictionary
-                    secret = secret_data.get("secret")
+                    
+                    match = re.search(r'"([^"]*)"', message)
+                    secret = match.group(1)
                     print(f"[SUCCESS] Secret received: {secret}")
                     
                     # Submit the solution
