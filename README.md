@@ -24,7 +24,7 @@ Replace `your_access_token_here` with your actual token.
 - [ ]  The one with Redis
 - [x]  Visual basic math
 - [ ]  A global presence
-- [ ]  WebSocket chit chat
+- [x]  WebSocket chit chat
 - [ ]  Collision course
 - [ ]  Hosting git
 - [ ]  Jotting JWTs

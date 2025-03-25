@@ -82,7 +82,7 @@ async def websocket_chit_chat():
                     # Submit the solution
                     print("[INFO] Submitting secret to solution endpoint...")
                     submission_response = requests.post(
-                        f"{BASE_URL}{SOLUTION_ENDPOINT}?access_token={ACCESS_TOKEN}",
+                        f"{BASE_URL}{SOLUTION_ENDPOINT}?access_token={ACCESS_TOKEN}" + "&playground=1",
                         json={"secret": secret}
                     )
                     print(f"[RESULT] {submission_response.json()}")

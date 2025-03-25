@@ -17,7 +17,7 @@ https://github.com/hitanshu-dhawan/Hackattic
 - [[Hackattic Challenge - The one with Redis]]
 - [[Hackattic Challenge - Visual basic math]] ✅
 - [[Hackattic Challenge - A global presence]]
-- [[Hackattic Challenge - WebSocket chit chat]]
+- [[Hackattic Challenge - WebSocket chit chat]] ✅
 - [[Hackattic Challenge - Collision course]]
 - [[Hackattic Challenge - Hosting git]]
 - [[Hackattic Challenge - Jotting JWTs]]
