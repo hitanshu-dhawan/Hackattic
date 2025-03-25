@@ -73,8 +73,8 @@ def detect_dtmf_tones(audio_data, sample_rate):
     Uses our custom Goertzel algorithm implementation.
     """
     # Parameters for detection
-    frame_size = int(0.060 * sample_rate)  # 50ms frames
-    hop_size = int(0.09 * sample_rate)    # 10ms hop
+    frame_size = int(0.050 * sample_rate)  # 50ms frames
+    hop_size = int(0.010 * sample_rate)    # 10ms hop
     threshold = 5.0  # Power threshold for tone detection - may need adjustment
     
     sequence = []
