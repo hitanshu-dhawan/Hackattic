@@ -96,8 +96,8 @@ def create_dns_resolver(records):
 
                     elif record_type == 'TXT' and qtype == QTYPE.TXT:
                         # Decode base64 data for TXT records
-                        decoded_data = base64.b64decode(record_data).decode()
-                        rr_data = TXT(decoded_data)
+                        # decoded_data = base64.b64decode(record_data).decode()
+                        rr_data = TXT(record_data)
 
                     elif record_type == 'RP' and qtype == QTYPE.RP:
                         rr_data = RP(record_data)
