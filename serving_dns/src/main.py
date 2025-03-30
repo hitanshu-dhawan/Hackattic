@@ -110,6 +110,10 @@ def create_dns_resolver(records):
                 except Exception as e:
                     print(f"Error processing record {record}: {e}")
 
+            # Log the response
+            print("Sending DNS response:")
+            print(reply)
+
             return reply
 
     return CustomResolver()
