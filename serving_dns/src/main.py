@@ -8,7 +8,7 @@ import base64
 # API Endpoints
 BASE_URL = "https://hackattic.com"
 PROBLEM_ENDPOINT = "/challenges/serving_dns/problem"
-SOLUTION_ENDPOINT = "/challenges/websocket_chit_chat/solve"
+SOLUTION_ENDPOINT = "/challenges/serving_dns/solve"
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
 
@@ -144,6 +144,7 @@ def submit_solution(dns_ip, dns_port):
     }
 
     print("Submitting solution...")
+    print(f"Solution: {solution}")
     try:
         response = requests.post(solve_url, json=solution)
         print(f"Solution submission status: {response.status_code}")
