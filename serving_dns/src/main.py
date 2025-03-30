@@ -1,8 +1,8 @@
 import os
+import argparse
 import requests
 from dnslib.server import DNSServer
 from dnslib import QTYPE, RR, A, AAAA, TXT, RP
-import base64
 
 
 # API Endpoints
@@ -154,6 +154,18 @@ def submit_solution(dns_ip, dns_port):
 
 
 def main():
+    """
+    Main function to run the DNS server and handle command line arguments
+
+    Run the server with:
+    python3 main.py --public-ip <your_public_ip>
+    """
+
+    parser = argparse.ArgumentParser(description="DNS Server for Hackattic Challenge")
+    parser.add_argument("--public-ip", required=True, help="Public IPv4 address to submit the solution")
+
+    args = parser.parse_args()
+    public_ip = args.public_ip
 
     # Configuration
     dns_address = '0.0.0.0' # Listen on all interfaces
@@ -167,7 +179,6 @@ def main():
         dns_server = start_dns_server(records, address=dns_address, port=dns_port)
 
         # Submit solution
-        public_ip = input("Enter a public IPv4 address: ")
         submit_solution(public_ip, dns_port)
 
         while True:
