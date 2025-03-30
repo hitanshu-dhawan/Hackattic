@@ -115,7 +115,7 @@ def create_dns_resolver(records):
     return CustomResolver()
 
 
-def start_dns_server(records, port):
+def start_dns_server(records, address, port):
     """
     Start DNS server using dnslib
     """
@@ -123,9 +123,9 @@ def start_dns_server(records, port):
     resolver = create_dns_resolver(records)
 
     # Create and start DNS server
-    dns_server = DNSServer(resolver, address='localhost', port=port)
+    dns_server = DNSServer(resolver, address=address, port=port)
     
-    print(f"Starting DNS server on localhost:{port}")
+    print(f"Starting DNS server on {address}:{port}")
     dns_server.start_thread()
     return dns_server
 
@@ -153,6 +153,7 @@ def submit_solution(dns_ip, dns_port):
 def main():
 
     # Configuration
+    dns_address = '0.0.0.0' # Listen on all interfaces
     dns_port = 2053
 
     try:
@@ -160,7 +161,7 @@ def main():
         records = fetch_dns_records()
 
         # Start DNS server
-        dns_server = start_dns_server(records, port=dns_port)
+        dns_server = start_dns_server(records, address=dns_address, port=dns_port)
 
         while True:
             # Keep the server running
