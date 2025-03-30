@@ -1,17 +1,23 @@
+import os
 import requests
-import subprocess
-import re
-import socket
+from dnslib.server import DNSServer
+from dnslib import QTYPE, RR, A, AAAA, TXT, RP
 import base64
-from dnslib.server import DNSServer, BaseResolver
-from dnslib import DNSRecord, QTYPE, RR, A, AAAA, TXT, RP
-import urllib.parse
 
-def fetch_dns_records(access_token):
+
+# API Endpoints
+BASE_URL = "https://hackattic.com"
+PROBLEM_ENDPOINT = "/challenges/serving_dns/problem"
+SOLUTION_ENDPOINT = "/challenges/websocket_chit_chat/solve"
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+
+
+def fetch_dns_records():
     """
     Fetch DNS records from the problem endpoint
     """
-    problem_url = f"https://hackattic.com/challenges/serving_dns/problem?access_token={access_token}"
+
+    problem_url = f"{BASE_URL}{PROBLEM_ENDPOINT}?access_token={ACCESS_TOKEN}"
     print("Fetching DNS records...")
     
     try:
@@ -28,53 +34,79 @@ def fetch_dns_records(access_token):
         print(f"Failed to fetch records: {e}")
         raise
 
+
 def create_dns_resolver(records):
     """
     Create a custom DNS resolver that handles specific records
     """
-    class CustomResolver(BaseResolver):
+
+    class CustomResolver:
+
         def __init__(self):
             super().__init__()
             self.records = records
 
         def resolve(self, request, handler):
-            # Extract query details
+
+            # Log the request
+            print("Received DNS request:")
+            print(request)
+
+            # Extract details
+            domain = str(request.q.qname).rstrip('.') # Domain name
+            qtype = request.q.qtype # Query type (e.g., A, AAAA, TXT)
+
             reply = request.reply()
-            qname = str(request.q.qname).rstrip('.')
-            qtype = request.q.qtype
 
             # Find matching records
-            matching_records = [
-                record for record in self.records 
-                if (record['name'] == qname or 
-                    (record['name'].startswith('*.') and 
-                     qname.endswith(record['name'][2:])))
-            ]
+            matching_records = []
+            for record in self.records:
+                record_name = record['name']
+
+                # Check if the record name matches exactly
+                if domain == record_name:
+                    matching_records.append(record)
+
+                # Check if the record is a wildcard (e.g., "*.example.com")
+                elif record_name.startswith('*.'):
+                    # Extract the part after "*."
+                    wildcard_suffix = record_name[2:]
+
+                    # Check if the queried domain ends with this suffix
+                    if domain.endswith(wildcard_suffix):
+                        matching_records.append(record)
+
+            print(f"Matching records for {domain}: {len(matching_records)}")
 
             # Process matching records
             for record in matching_records:
                 try:
-                    # Map record types
-                    type_map = {
-                        'A': (QTYPE.A, A),
-                        'AAAA': (QTYPE.AAAA, AAAA),
-                        'TXT': (QTYPE.TXT, TXT),
-                        'RP': (QTYPE.RP, RP)
-                    }
+                    # Extract record type and data
+                    record_type = record['type']
+                    record_data = record['data']
 
-                    if record['type'] in type_map and qtype == type_map[record['type']][0]:
-                        rr_class = type_map[record['type']][1]
-                        
-                        # Special handling for TXT (base64 decoding)
-                        data = base64.b64decode(record['data']).decode() if record['type'] == 'TXT' else record['data']
+                    rr_data = None
 
-                        # Create appropriate record type
-                        rr = RR(
-                            rname=qname,
-                            rtype=qtype,
-                            rdata=rr_class(data)
-                        )
+                    # Handle different DNS record types
+                    if record_type == 'A' and qtype == QTYPE.A:
+                        rr_data = A(record_data)
+
+                    elif record_type == 'AAAA' and qtype == QTYPE.AAAA:
+                        rr_data = AAAA(record_data)
+
+                    elif record_type == 'TXT' and qtype == QTYPE.TXT:
+                        # Decode base64 data for TXT records
+                        decoded_data = base64.b64decode(record_data).decode()
+                        rr_data = TXT(decoded_data)
+
+                    elif record_type == 'RP' and qtype == QTYPE.RP:
+                        rr_data = RP(record_data)
+
+                    # If a valid record was created, add it to the response
+                    if rr_data:
+                        rr = RR(rname=domain, rtype=qtype, rdata=rr_data)
                         reply.add_answer(rr)
+
                 except Exception as e:
                     print(f"Error processing record {record}: {e}")
 
@@ -82,108 +114,33 @@ def create_dns_resolver(records):
 
     return CustomResolver()
 
-def start_dns_server(records, port=2053):
+
+def start_dns_server(records, port):
     """
     Start DNS server using dnslib
     """
+
     resolver = create_dns_resolver(records)
-    
+
     # Create and start DNS server
-    dns_server = DNSServer(resolver, port=port, address='localhost')
+    dns_server = DNSServer(resolver, address='localhost', port=port)
     
     print(f"Starting DNS server on localhost:{port}")
     dns_server.start_thread()
     return dns_server
 
-def start_cloudflare_tunnel(dns_port):
-    """
-    Start Cloudflare tunnel and extract external URL
-    """
-    try:
-        # Start cloudflared tunnel in background
-        process = subprocess.Popen(
-            ['cloudflared', 'tunnel', '--url', f'http://localhost:{dns_port}'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
-        )
 
-        tunnel_url = None
-
-        # Read the output line by line
-        for line in iter(process.stdout.readline, ''):
-            print(line, end='')  # Print log for debugging
-
-            # Regex to find the tunnel URL
-            match = re.search(r"(?P<url>https://[^\s]+\.trycloudflare\.com)", line)
-            if match:
-                tunnel_url = match.group("url")
-                break
-
-        if tunnel_url:
-            print(f"\nCloudflare tunnel created: {tunnel_url}")
-            return tunnel_url
-        else:
-            print("\nFailed to extract Cloudflare tunnel URL")
-            return None
-
-    except Exception as e:
-        print(f"Error starting Cloudflare tunnel: {e}")
-        return None
-
-def extract_dns_ip(tunnel_url):
-    """
-    Robust IP extraction from tunnel URL
-    """
-    try:
-        # Parse the URL
-        parsed_url = urllib.parse.urlparse(tunnel_url)
-        hostname = parsed_url.hostname
-
-        # Try different methods to resolve IP
-        try:
-            # First, try direct socket resolution
-            ip_address = socket.gethostbyname(hostname)
-            print(f"Resolved IP using socket.gethostbyname(): {ip_address}")
-            return ip_address
-        except socket.gaierror:
-            # If that fails, try alternative methods
-            try:
-                # Try getting all possible addresses
-                addrinfo = socket.getaddrinfo(hostname, None)
-                ip_address = addrinfo[0][4][0]
-                print(f"Resolved IP using socket.getaddrinfo(): {ip_address}")
-                return ip_address
-            except Exception as e:
-                print(f"Failed to resolve IP using getaddrinfo(): {e}")
-                
-                # Last resort: manual parsing
-                match = re.search(r'([^.]+)', hostname)
-                if match:
-                    fallback_hostname = f"{match.group(1)}.trycloudflare.com"
-                    try:
-                        fallback_ip = socket.gethostbyname(fallback_hostname)
-                        print(f"Resolved IP using fallback method: {fallback_ip}")
-                        return fallback_ip
-                    except Exception as e:
-                        print(f"Fallback IP resolution failed: {e}")
-
-        raise ValueError("Could not resolve tunnel IP")
-
-    except Exception as e:
-        print(f"Error extracting DNS IP: {e}")
-        raise
-
-def solve_challenge(access_token, dns_ip, dns_port):
+def submit_solution(dns_ip, dns_port):
     """
     Submit solution to the challenge endpoint
     """
-    solve_url = f"https://hackattic.com/challenges/serving_dns/solve?access_token={access_token}"
+
+    solve_url = f"{BASE_URL}{SOLUTION_ENDPOINT}?access_token={ACCESS_TOKEN}"
     solution = {
         "dns_ip": dns_ip,
         "dns_port": dns_port
     }
-    
+
     print("Submitting solution...")
     try:
         response = requests.post(solve_url, json=solution)
@@ -192,37 +149,29 @@ def solve_challenge(access_token, dns_ip, dns_port):
     except Exception as e:
         print(f"Error submitting solution: {e}")
 
+
 def main():
+
     # Configuration
-    access_token = "a606a820e697cfab"
     dns_port = 2053
 
     try:
         # Fetch DNS records
-        records = fetch_dns_records(access_token)
+        records = fetch_dns_records()
 
         # Start DNS server
         dns_server = start_dns_server(records, port=dns_port)
-
-        # Start Cloudflare tunnel
-        # tunnel_url = start_cloudflare_tunnel(dns_port)
-        
-        # if tunnel_url:
-            # Extract IP from tunnel URL with robust method
-            # dns_ip = extract_dns_ip(tunnel_url)
-            # print(f"Extracted DNS IP: {dns_ip}")
-
-            # Submit solution
-            # solve_challenge(access_token, tunnel_url, dns_port)
-        # else:
-            # print("Could not complete challenge due to tunnel creation failure")
 
         while True:
             # Keep the server running
             pass
 
+    except KeyboardInterrupt:
+        print("Shutting down server...")
+        dns_server.stop()
     except Exception as e:
-        print(f"Challenge failed: {e}")
+        print(f"Exception: {e}")
+
 
 if __name__ == '__main__':
     main()
