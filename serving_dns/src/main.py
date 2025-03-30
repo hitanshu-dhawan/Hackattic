@@ -95,8 +95,6 @@ def create_dns_resolver(records):
                         rr_data = AAAA(record_data)
 
                     elif record_type == 'TXT' and qtype == QTYPE.TXT:
-                        # Decode base64 data for TXT records
-                        # decoded_data = base64.b64decode(record_data).decode()
                         rr_data = TXT(record_data)
 
                     elif record_type == 'RP' and qtype == QTYPE.RP:
@@ -139,7 +137,7 @@ def submit_solution(dns_ip, dns_port):
     Submit solution to the challenge endpoint
     """
 
-    solve_url = f"{BASE_URL}{SOLUTION_ENDPOINT}?access_token={ACCESS_TOKEN}"
+    solve_url = f"{BASE_URL}{SOLUTION_ENDPOINT}?access_token={ACCESS_TOKEN}" + "&playground=1"
     solution = {
         "dns_ip": dns_ip,
         "dns_port": dns_port
@@ -166,6 +164,10 @@ def main():
 
         # Start DNS server
         dns_server = start_dns_server(records, address=dns_address, port=dns_port)
+
+        # Submit solution
+        public_ip = input("Enter a public IPv4 address: ")
+        submit_solution(public_ip, dns_port)
 
         while True:
             # Keep the server running
