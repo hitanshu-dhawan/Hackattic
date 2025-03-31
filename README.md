@@ -30,5 +30,5 @@ Replace `your_access_token_here` with your actual token.
 - [ ]  Jotting JWTs
 - [x]  Reading QR
 - [x]  Brute force ZIP
-- [ ]  Serving DNS
+- [x]  Serving DNS
 - [ ]  Backup restore
