@@ -53,10 +53,10 @@ def setup_user_and_repo(username, ssh_key, repo_path):
         run_command(f"sudo adduser --disabled-password --gecos '' {username}")
     
     # Create .ssh directory and authorized_keys file
-    run_command(f"sudo mkdir -p /home/{username}/.ssh", as_user=username)
-    run_command(f"sudo chmod 700 /home/{username}/.ssh", as_user=username)
-    run_command(f"sudo touch /home/{username}/.ssh/authorized_keys", as_user=username)
-    run_command(f"sudo chmod 600 /home/{username}/.ssh/authorized_keys", as_user=username)
+    run_command(f"mkdir -p /home/{username}/.ssh", as_user=username)
+    run_command(f"chmod 700 /home/{username}/.ssh", as_user=username)
+    run_command(f"touch /home/{username}/.ssh/authorized_keys", as_user=username)
+    run_command(f"chmod 600 /home/{username}/.ssh/authorized_keys", as_user=username)
     
     # Add the SSH key to authorized_keys
     ssh_key_path = f"/home/{username}/.ssh/authorized_keys"
@@ -66,13 +66,13 @@ def setup_user_and_repo(username, ssh_key, repo_path):
     # Create repository directory
     repo_full_path = f"/home/{username}/{repo_path}"
     # repo_dir = os.path.dirname(repo_full_path)
-    run_command(f"sudo mkdir -p {repo_full_path}", as_user=username)
+    run_command(f"mkdir -p {repo_full_path}", as_user=username)
     # run_command(f"sudo chown -R {username}:{username} {repo_dir}")
     
     # Initialize bare git repository
-    run_command(f"sudo mkdir -p {repo_full_path}", as_user=username)
+    run_command(f"mkdir -p {repo_full_path}", as_user=username)
     # run_command(f"sudo chown -R {username}:{username} {repo_full_path}")
-    run_command(f"cd {repo_full_path} && sudo git init --bare", as_user=username)
+    run_command(f"cd {repo_full_path} && git init --bare", as_user=username)
     
     return repo_full_path
 
