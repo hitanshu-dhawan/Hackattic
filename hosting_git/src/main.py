@@ -13,6 +13,7 @@ BASE_URL = "https://hackattic.com"
 
 def get_problem_data():
     """Fetch the problem data from the endpoint"""
+
     url = f"{BASE_URL}/challenges/hosting_git/problem?access_token={ACCESS_TOKEN}"
     response = requests.get(url)
     if response.status_code != 200:
@@ -20,13 +21,11 @@ def get_problem_data():
         sys.exit(1)
     return response.json()
 
-def run_command(command, as_user=None):
+def run_command(command):
     """Run a command with subprocess, optionally as another user"""
-    if as_user:
-        command = f"sudo -u {as_user} {command}"
     
     print(f"Running: {command}")
-    proc = subprocess.run(command, shell=True, capture_output=True, text=True)
+    proc = subprocess.run(command, capture_output=True, text=True, shell=True)
     
     if proc.returncode != 0:
         print(f"Command failed with exit code {proc.returncode}")
@@ -37,10 +36,15 @@ def run_command(command, as_user=None):
     return proc.stdout.strip()
 
 def setup_user_and_repo(username, ssh_key, repo_path):
-    """Set up the user and git repository"""
+    """
+    Set up the user and git repository
+
+    Setting Up the Server: https://git-scm.com/book/en/v2/Git-on-the-Server-Setting-Up-the-Server
+    """
+
     # Check if user already exists
     try:
-        subprocess.run(f"id {username}", shell=True, check=False, capture_output=True)
+        subprocess.run(f"id {username}", capture_output=True, text=True, check=True, shell=True)
         print(f"User {username} already exists")
     except:
         # Create the user if it doesn't exist
@@ -48,26 +52,27 @@ def setup_user_and_repo(username, ssh_key, repo_path):
         run_command(f"sudo adduser --disabled-password --gecos '' {username}")
     
     # Create .ssh directory and authorized_keys file
-    run_command(f"sudo mkdir -p /home/{username}/.ssh", as_user=username)
+    run_command(f"sudo mkdir -p /home/{username}/.ssh")
     run_command(f"sudo chmod 700 /home/{username}/.ssh")
     run_command(f"sudo touch /home/{username}/.ssh/authorized_keys")
     run_command(f"sudo chmod 600 /home/{username}/.ssh/authorized_keys")
     
     # Add the SSH key to authorized_keys
     ssh_key_path = f"/home/{username}/.ssh/authorized_keys"
-    run_command(f"echo '{ssh_key}' | sudo tee {ssh_key_path}")
-    run_command(f"sudo chown -R {username}:{username} /home/{username}/.ssh")
+    run_command(f"echo '{ssh_key}' > {ssh_key_path}")
+    # run_command(f"sudo chown -R {username}:{username} /home/{username}/.ssh")
     
     # Create repository directory
     repo_full_path = f"/home/{username}/{repo_path}"
-    repo_dir = os.path.dirname(repo_full_path)
-    run_command(f"sudo mkdir -p {repo_dir}")
-    run_command(f"sudo chown -R {username}:{username} {repo_dir}")
+    # repo_dir = os.path.dirname(repo_full_path)
+    run_command(f"sudo mkdir -p {repo_full_path}")
+    # run_command(f"sudo chown -R {username}:{username} {repo_dir}")
     
     # Initialize bare git repository
     run_command(f"sudo mkdir -p {repo_full_path}")
-    run_command(f"sudo chown -R {username}:{username} {repo_full_path}")
-    run_command(f"git init --bare", as_user=username)
+    # run_command(f"sudo chown -R {username}:{username} {repo_full_path}")
+    run_command(f"cd {repo_full_path}")
+    run_command(f"git init --bare")
     
     return repo_full_path
 
@@ -135,6 +140,8 @@ def main():
     
     print(f"Username: {username}")
     print(f"Repo path: {repo_path}")
+    print(f"SSH Key: {ssh_key}")
+    print(f"Push token: {push_token}")
     
     # Setup user and repo
     print("Setting up user and repository...")
