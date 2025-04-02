@@ -69,8 +69,7 @@ def setup_user_and_repo(username, ssh_key, repo_path):
     # Initialize bare git repository
     run_command(f"sudo mkdir -p {repo_full_path}")
     # run_command(f"sudo chown -R {username}:{username} {repo_full_path}")
-    run_command(f"cd {repo_full_path}")
-    run_command(f"sudo git init --bare")
+    run_command(f"cd {repo_full_path} && sudo git init --bare")
     
     return repo_full_path
 
