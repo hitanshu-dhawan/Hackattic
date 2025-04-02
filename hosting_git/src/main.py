@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 import requests
-import json
 import os
 import sys
 import subprocess
-import time
 import argparse
 
 # Your access token
@@ -72,14 +70,16 @@ def setup_user_and_repo(username, ssh_key, repo_path):
     run_command(f"sudo mkdir -p {repo_full_path}")
     # run_command(f"sudo chown -R {username}:{username} {repo_full_path}")
     run_command(f"cd {repo_full_path}")
-    run_command(f"git init --bare")
+    run_command(f"sudo git init --bare")
     
     return repo_full_path
 
 def trigger_push(push_token, repo_host):
     """Trigger a push from the hackattic server"""
+
     url = f"{BASE_URL}/_/git/{push_token}"
     data = {"repo_host": repo_host}
+
     print(f"Triggering push with data: {data}")
     
     response = requests.post(url, json=data)
@@ -153,14 +153,14 @@ def main():
     print(f"Push result: {push_result}")
     
     # Extract secret
-    print("Extracting secret...")
-    secret = extract_secret(username, repo_path)
-    print(f"Secret found: {secret}")
+    # print("Extracting secret...")
+    # secret = extract_secret(username, repo_path)
+    # print(f"Secret found: {secret}")
     
     # Submit solution
-    print("Submitting solution...")
-    solution_result = submit_solution(secret)
-    print(f"Solution result: {solution_result}")
+    # print("Submitting solution...")
+    # solution_result = submit_solution(secret)
+    # print(f"Solution result: {solution_result}")
     
     print("Challenge completed successfully!")
 
