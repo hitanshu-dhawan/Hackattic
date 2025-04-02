@@ -60,7 +60,7 @@ def setup_user_and_repo(username, ssh_key, repo_path):
     
     # Add the SSH key to authorized_keys
     ssh_key_path = f"/home/{username}/.ssh/authorized_keys"
-    run_command(f"echo '{ssh_key}' > {ssh_key_path}", as_user=username)
+    run_command(f"echo '{ssh_key}' > {ssh_key_path}")
     # run_command(f"sudo chown -R {username}:{username} /home/{username}/.ssh")
     
     # Create repository directory
