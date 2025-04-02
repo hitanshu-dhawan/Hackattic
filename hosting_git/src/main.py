@@ -23,7 +23,7 @@ def run_command(command, as_user=None):
     """Run a command with subprocess, optionally as another user"""
 
     if as_user:
-        command = f"sudo -u {as_user} bash -c \"{command}\""
+        command = f"sudo -u {as_user} bash -c '{command}'"
     
     print(f"Running: {command}")
     proc = subprocess.run(command, capture_output=True, text=True, shell=True)
