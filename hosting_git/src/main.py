@@ -19,8 +19,11 @@ def get_problem_data():
         sys.exit(1)
     return response.json()
 
-def run_command(command):
+def run_command(command, as_user=None):
     """Run a command with subprocess, optionally as another user"""
+
+    if as_user:
+        command = f"sudo -u {as_user} {command}"
     
     print(f"Running: {command}")
     proc = subprocess.run(command, capture_output=True, text=True, shell=True)
@@ -50,26 +53,26 @@ def setup_user_and_repo(username, ssh_key, repo_path):
         run_command(f"sudo adduser --disabled-password --gecos '' {username}")
     
     # Create .ssh directory and authorized_keys file
-    run_command(f"sudo mkdir -p /home/{username}/.ssh")
-    run_command(f"sudo chmod 700 /home/{username}/.ssh")
-    run_command(f"sudo touch /home/{username}/.ssh/authorized_keys")
-    run_command(f"sudo chmod 600 /home/{username}/.ssh/authorized_keys")
+    run_command(f"sudo mkdir -p /home/{username}/.ssh", as_user=username)
+    run_command(f"sudo chmod 700 /home/{username}/.ssh", as_user=username)
+    run_command(f"sudo touch /home/{username}/.ssh/authorized_keys", as_user=username)
+    run_command(f"sudo chmod 600 /home/{username}/.ssh/authorized_keys", as_user=username)
     
     # Add the SSH key to authorized_keys
     ssh_key_path = f"/home/{username}/.ssh/authorized_keys"
-    run_command(f"echo '{ssh_key}' > {ssh_key_path}")
+    run_command(f"echo '{ssh_key}' > {ssh_key_path}", as_user=username)
     # run_command(f"sudo chown -R {username}:{username} /home/{username}/.ssh")
     
     # Create repository directory
     repo_full_path = f"/home/{username}/{repo_path}"
     # repo_dir = os.path.dirname(repo_full_path)
-    run_command(f"sudo mkdir -p {repo_full_path}")
+    run_command(f"sudo mkdir -p {repo_full_path}", as_user=username)
     # run_command(f"sudo chown -R {username}:{username} {repo_dir}")
     
     # Initialize bare git repository
-    run_command(f"sudo mkdir -p {repo_full_path}")
+    run_command(f"sudo mkdir -p {repo_full_path}", as_user=username)
     # run_command(f"sudo chown -R {username}:{username} {repo_full_path}")
-    run_command(f"cd {repo_full_path} && sudo git init --bare")
+    run_command(f"cd {repo_full_path} && sudo git init --bare", as_user=username)
     
     return repo_full_path
 
