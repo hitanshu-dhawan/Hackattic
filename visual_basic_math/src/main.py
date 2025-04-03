@@ -1,7 +1,12 @@
 import os
 import requests
 import webbrowser
+
+# OpenAI and Gemini API clients
 from openai import OpenAI
+from google import genai
+from google.genai import types
+
 
 # Access token from environment variables
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
@@ -9,6 +14,7 @@ ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 # API Endpoints
 PROBLEM_URL = f"https://hackattic.com/challenges/visual_basic_math/problem?access_token={ACCESS_TOKEN}"
 SUBMIT_URL = f"https://hackattic.com/challenges/visual_basic_math/solve?access_token={ACCESS_TOKEN}" + "&playground=1"
+
 
 def fetch_image_url():
     """Fetch the image URL from the problem endpoint."""
@@ -19,6 +25,7 @@ def fetch_image_url():
     response_json = response.json()
     print(f"[DEBUG] Response JSON: {response_json}")
     return response_json["image_url"]
+
 
 def extract_text_using_gpt(image_url):
     """Extract text from the given image URL using OpenAI's GPT."""
@@ -47,7 +54,34 @@ def extract_text_using_gpt(image_url):
     extracted_text = response.choices[0].message.content
     print("[DEBUG] Extracted Text:")
     print(extracted_text)
+
     return extracted_text
+
+
+def extract_text_using_gemini(image_url):
+    """Extract text from the given image URL using Google's Gemini."""
+    # https://ai.google.dev/gemini-api/docs/vision?lang=python
+    
+    print("[INFO] Sending image to Gemini for text extraction...")
+
+    image = requests.get(image_url)
+
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    response = client.models.generate_content(
+        model="gemini-2.0-flash-exp",
+        contents=[
+            "Ensure the extracted text consists only of the characters '0123456789+-×÷' while preserving the original formatting. "
+            "The first character must be one of '+', '-', '×', or '÷', followed by a space, and then a number without any spaces.",
+            types.Part.from_bytes(data=image.content, mime_type="image/jpeg")
+        ]
+    )
+    
+    extracted_text = response.text
+    print("[DEBUG] Extracted Text:")
+    print(extracted_text)
+    
+    return extracted_text
+
 
 def compute_result(math_operations):
     """Computes the final result based on parsed math operations."""
@@ -76,6 +110,7 @@ def compute_result(math_operations):
     print(f"[INFO] Computed Result: {result}")
     return result
 
+
 def submit_solution(result):
     """Submit the computed result."""
     print(f"[INFO] Submitting result: {result}")
@@ -86,6 +121,7 @@ def submit_solution(result):
     response_json = response.json()
     print(f"[DEBUG] Submission Response JSON: {response_json}")
     return response_json
+
 
 def main():
     """Main function to execute the challenge."""
@@ -100,7 +136,10 @@ def main():
         webbrowser.open(image_url)
         
         # Extract text using GPT model
-        extracted_text = extract_text_using_gpt(image_url)
+        # extracted_text = extract_text_using_gpt(image_url)
+
+        # Extract text using Gemini model
+        extracted_text = extract_text_using_gemini(image_url)
 
         # Todo
         # Implement custom local model to extract text from image
@@ -115,6 +154,7 @@ def main():
     
     except Exception as e:
         print(f"[ERROR] {e}")
+
 
 if __name__ == "__main__":
     main()

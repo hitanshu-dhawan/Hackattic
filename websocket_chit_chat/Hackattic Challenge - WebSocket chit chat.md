@@ -38,7 +38,7 @@ Solution JSON structure:
 - `secret`: the secret phrase you got from the websocket server
 
 ---
-# Solution
+# WebSocket code
 
 ##### `server.py`
 
