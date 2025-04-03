@@ -23,7 +23,7 @@ def run_command(command, as_user=None):
     """Run a command with subprocess, optionally as another user"""
 
     if as_user:
-        command = f"sudo -u {as_user} bash -c '{command}'"
+        command = f"sudo -u {as_user} bash -c \"{command}\""
     
     print(f"Running: {command}")
     proc = subprocess.run(command, capture_output=True, text=True, shell=True)
@@ -60,21 +60,14 @@ def setup_user_and_repo(username, ssh_key, repo_path):
     
     # Add the SSH key to authorized_keys
     ssh_key_path = f"/home/{username}/.ssh/authorized_keys"
-    run_command(f"echo '{ssh_key}' > {ssh_key_path}")
-    # run_command(f"sudo chown -R {username}:{username} /home/{username}/.ssh")
+    run_command(f"echo '{ssh_key}' > {ssh_key_path}", as_user=username)
     
     # Create repository directory
     repo_full_path = f"/home/{username}/{repo_path}"
-    # repo_dir = os.path.dirname(repo_full_path)
     run_command(f"mkdir -p {repo_full_path}", as_user=username)
-    # run_command(f"sudo chown -R {username}:{username} {repo_dir}")
     
     # Initialize bare git repository
-    run_command(f"mkdir -p {repo_full_path}", as_user=username)
-    # run_command(f"sudo chown -R {username}:{username} {repo_full_path}")
     run_command(f"cd {repo_full_path} && git init --bare", as_user=username)
-    
-    return repo_full_path
 
 def trigger_push(push_token, repo_host):
     """Trigger a push from the hackattic server"""
@@ -93,9 +86,24 @@ def trigger_push(push_token, repo_host):
     print("Push triggered successfully")
     return response.json()
 
+def extract_secret(username, repo_path):
+    """Extract the secret from solution.txt in the repository"""
+    
+    repo_full_path = f"/home/{username}/{repo_path}"
+    
+    # Change directory to repo path and mark it as safe
+    # This is needed to avoid "fatal: detected dubious ownership in repository" error
+    run_command(f"cd {repo_full_path} && git config --global --add safe.directory {repo_full_path}")
+    
+    # Extract the secret directly from the HEAD revision of solution.txt
+    secret = run_command(f"cd {repo_full_path} && git show HEAD:solution.txt")
+    
+    return secret
+
 def submit_solution(secret):
     """Submit the solution to hackattic"""
-    url = f"{BASE_URL}/challenges/hosting_git/solve?access_token={ACCESS_TOKEN}"
+
+    url = f"{BASE_URL}/challenges/hosting_git/solve?access_token={ACCESS_TOKEN}" + "&playground=1"
     data = {"secret": secret}
     
     response = requests.post(url, json=data)
@@ -106,22 +114,6 @@ def submit_solution(secret):
     
     print("Solution submitted successfully!")
     return response.json()
-
-def extract_secret(username, repo_path):
-    """Clone the repository and extract the secret from solution.txt"""
-    temp_dir = "/tmp/git_challenge"
-    run_command(f"rm -rf {temp_dir}")
-    run_command(f"mkdir -p {temp_dir}")
-    
-    # Clone the repo locally
-    repo_dir = os.path.dirname(repo_path)
-    repo_name = os.path.basename(repo_path)
-    
-    run_command(f"cd {temp_dir} && git clone /home/{username}/{repo_path} cloned_repo")
-    
-    # Extract the secret from solution.txt
-    secret = run_command(f"cat {temp_dir}/cloned_repo/solution.txt")
-    return secret
 
 def main():
 
@@ -155,14 +147,14 @@ def main():
     print(f"Push result: {push_result}")
     
     # Extract secret
-    # print("Extracting secret...")
-    # secret = extract_secret(username, repo_path)
-    # print(f"Secret found: {secret}")
+    print("Extracting secret...")
+    secret = extract_secret(username, repo_path)
+    print(f"Secret found: {secret}")
     
     # Submit solution
-    # print("Submitting solution...")
-    # solution_result = submit_solution(secret)
-    # print(f"Solution result: {solution_result}")
+    print("Submitting solution...")
+    solution_result = submit_solution(secret)
+    print(f"Solution result: {solution_result}")
     
     print("Challenge completed successfully!")
 
