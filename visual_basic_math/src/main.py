@@ -126,14 +126,14 @@ def submit_solution(result):
 def main():
     """Main function to execute the challenge."""
     try:
-        print("\n=== Starting Visual Basic Math Challenge ===")
+        print("=== Starting Visual Basic Math Challenge ===")
 
         # Fetch image URL from the challenge API
         image_url = fetch_image_url()
 
         # Open the image URL in browser
-        print("[INFO] Opening Image URL in Browser...")
-        webbrowser.open(image_url)
+        # print("[INFO] Opening Image URL in Browser...")
+        # webbrowser.open(image_url)
         
         # Extract text using GPT model
         # extracted_text = extract_text_using_gpt(image_url)
