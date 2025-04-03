@@ -19,7 +19,7 @@ https://github.com/hitanshu-dhawan/Hackattic
 - [[Hackattic Challenge - A global presence]]
 - [[Hackattic Challenge - WebSocket chit chat]] ✅
 - [[Hackattic Challenge - Collision course]]
-- [[Hackattic Challenge - Hosting git]]
+- [[Hackattic Challenge - Hosting git]] ✅
 - [[Hackattic Challenge - Jotting JWTs]]
 - [[Hackattic Challenge - Reading QR]] ✅
 - [[Hackattic Challenge - Brute force ZIP]] ✅

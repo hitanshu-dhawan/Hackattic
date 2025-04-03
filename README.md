@@ -26,7 +26,7 @@ Replace `your_access_token_here` with your actual token.
 - [ ]  A global presence
 - [x]  WebSocket chit chat
 - [ ]  Collision course
-- [ ]  Hosting git
+- [x]  Hosting git
 - [ ]  Jotting JWTs
 - [x]  Reading QR
 - [x]  Brute force ZIP
