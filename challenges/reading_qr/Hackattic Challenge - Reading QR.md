@@ -78,6 +78,8 @@ for obj in decoded_objects:
 - https://pypi.org/project/pyzbar/
 - Issue of zbar (`ImportError: Unable to find zbar shared library`)
   https://stackoverflow.com/a/72212330
+- I built a QR code with my bare hands to see how it works by Veritasium
+  https://youtu.be/w5ebcowAJD8?si=2zf3Ge9qLVPFoxfo
 
 
 #Hackattic

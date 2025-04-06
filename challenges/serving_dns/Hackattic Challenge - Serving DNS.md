@@ -180,6 +180,67 @@ except KeyboardInterrupt:
 - The server supports **wildcard domain handling** and **multiple DNS record types** (A, AAAA, TXT, RP).
 - It runs in a **background thread** and can be stopped gracefully.
 
+## **`dig` command**
+
+The `dig` command (short for **Domain Information Groper**) is a network administration command-line tool used to **query DNS (Domain Name System) servers**. It's commonly used to:
+
+- Look up IP addresses of domain names
+- Get DNS records like A, AAAA, MX, CNAME, TXT, etc.
+- Debug DNS issues
+- See how DNS resolution is working
+
+### 🔹 Basic Syntax
+
+```bash
+dig [@server] [name] [type]
+```
+
+- `@server` — Optional DNS server to query (e.g. `@8.8.8.8` for Google DNS)
+- `name` — Domain name to query (e.g. `example.com`)
+- `type` — DNS record type to query (e.g. `A`, `MX`, `TXT`, etc.)
+
+### 🔹 Common Examples
+
+```bash
+dig example.com
+```
+
+→ Queries the A record (IPv4 address) for `example.com` using the default DNS server.
+
+```bash
+dig example.com MX
+```
+
+→ Queries the Mail Exchange (MX) records for `example.com`.
+
+```bash
+dig @8.8.8.8 example.com
+```
+
+→ Uses Google DNS to query the A record for `example.com`.
+
+### 🔹 `-p` Flag
+
+```bash
+dig -p [port] [domain]
+```
+
+The `-p` option specifies a **custom port** to connect to the DNS server. By default, DNS queries use **UDP port 53**, but you can override this if needed (e.g. for testing, debugging, or using non-standard setups).
+
+#### Example:
+
+```bash
+dig @localhost -p 5353 example.com
+```
+
+→ Queries `example.com` using a DNS server running on `localhost` at port `5353`.
+
+### 🧠 When would you use `-p`?
+
+- Testing custom DNS servers not running on port 53
+- Debugging DNS proxies or forwarders
+- DNS over non-standard ports in development
+
 ---
 # Resources
 
