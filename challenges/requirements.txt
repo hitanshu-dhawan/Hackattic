@@ -1,0 +1,18 @@
+# Core Libraries
+requests             # Simplified HTTP client for Python
+
+# Computer Vision & Image Processing
+opencv-python        # OpenCV bindings for real-time computer vision
+pyzbar               # Barcode and QR code reader using ZBar
+
+# Networking & Protocols
+dnslib               # DNS protocol implementation in Python
+websockets           # WebSocket client and server library
+
+# Scientific & Numerical Computing
+numpy                # Fundamental package for array-based numerical computing
+scipy                # Scientific computing tools built on NumPy
+
+# AI & Generative SDKs
+openai               # OpenAI's API client for language and vision models
+google-genai         # SDK for Google's Generative AI APIs

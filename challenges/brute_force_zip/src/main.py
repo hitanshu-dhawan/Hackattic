@@ -43,7 +43,7 @@ def download_zip(zip_url, filename="package.zip"):
 def run_pkcrack():
     """Run pkcrack to recover the ZIP encryption key and decrypt the ZIP file."""
     command = [
-        "~/pkcrack/bin/pkcrack",
+        "../../pkcrack/bin/pkcrack",
         "-C", "package.zip", 
         "-c", "dunwich_horror.txt", 
         "-P", "unprotected.zip", 
