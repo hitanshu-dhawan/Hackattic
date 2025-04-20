@@ -14,7 +14,7 @@ Replace `your_access_token_here` with your actual token.
 
 ## Progress
 
-- [ ]  Mini miner
+- [x]  Mini miner
 - [x]  Help me unpack
 - [ ]  Tales of SSL
 - [ ]  Dockerized solutions

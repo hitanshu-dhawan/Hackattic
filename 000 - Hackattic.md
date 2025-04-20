@@ -7,7 +7,7 @@ https://github.com/hitanshu-dhawan/Hackattic
 
 ### Challenges
 
-- [[Hackattic Challenge - Mini miner]]
+- [[Hackattic Challenge - Mini miner]] ✅
 - [[Hackattic Challenge - Help me unpack]] ✅
 - [[Hackattic Challenge - Tales of SSL]]
 - [[Hackattic Challenge - Dockerized solutions]]
