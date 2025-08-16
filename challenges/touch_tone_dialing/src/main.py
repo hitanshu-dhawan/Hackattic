@@ -30,7 +30,7 @@ def download_wav_file(url):
 
 def goertzel_algorithm(samples, sample_rate, target_freq):
     """
-    Custom implementation of the Goertzel algorithm.
+    Improved Goertzel algorithm implementation.
     Detects the presence of a specific frequency in a signal.
     
     Parameters:
@@ -39,140 +39,177 @@ def goertzel_algorithm(samples, sample_rate, target_freq):
     - target_freq: frequency to detect in Hz
     
     Returns:
-    - Power of target frequency in the signal
+    - Magnitude of target frequency in the signal
     """
     # Number of samples
     N = len(samples)
     
-    # Normalized frequency
-    k = int(0.5 + (N * target_freq) / sample_rate)
+    # Normalized frequency - more precise calculation
+    k = (N * target_freq) / sample_rate
     omega = 2 * np.pi * k / N
     
     # Goertzel coefficients
     coeff = 2 * np.cos(omega)
     
     # Initialization
-    s0, s1, s2 = 0, 0, 0
+    s_prev = 0.0
+    s_prev2 = 0.0
     
     # Process samples
-    for i in range(N):
-        s0 = samples[i] + coeff * s1 - s2
-        s2 = s1
-        s1 = s0
+    for sample in samples:
+        s = sample + coeff * s_prev - s_prev2
+        s_prev2 = s_prev
+        s_prev = s
     
-    # Calculate magnitude
-    real = s1 - s2 * np.cos(omega)
-    imag = s2 * np.sin(omega)
+    # Calculate final result using complex exponential
+    real_part = s_prev - s_prev2 * np.cos(omega)
+    imag_part = s_prev2 * np.sin(omega)
     
-    # Return power
-    return real**2 + imag**2
+    # Return magnitude (not power)
+    magnitude = np.sqrt(real_part**2 + imag_part**2)
+    return magnitude
 
 def detect_dtmf_tones(audio_data, sample_rate):
     """
     Detect DTMF tones in the audio data.
-    Uses our custom Goertzel algorithm implementation.
+    Uses improved Goertzel algorithm with better parameters.
     """
-    # Parameters for detection
-    frame_size = int(0.050 * sample_rate)  # 50ms frames
+    # Parameters for detection - adjusted for better accuracy
+    frame_size = int(0.030 * sample_rate)  # 30ms frames (shorter for better resolution)
     hop_size = int(0.010 * sample_rate)    # 10ms hop
-    threshold = 5.0  # Power threshold for tone detection - may need adjustment
     
     sequence = []
-    current_tone = None
-    silent_frames = 0
-    required_silent_frames = 3  # Number of silent frames needed to consider a tone ended
+    previous_tone = None
+    tone_count = 0
+    min_tone_duration = 3  # Minimum frames for a valid tone
+    silence_count = 0
+    min_silence_duration = 2  # Minimum frames of silence between tones
+    
+    print(f"Processing audio: {len(audio_data)} samples at {sample_rate} Hz")
+    print(f"Frame size: {frame_size}, Hop size: {hop_size}")
     
     # Process the audio in frames
-    for i in range(0, len(audio_data) - frame_size, hop_size):
-        frame = audio_data[i:i + frame_size]
+    total_frames = (len(audio_data) - frame_size) // hop_size
+    for i, start in enumerate(range(0, len(audio_data) - frame_size, hop_size)):
+        frame = audio_data[start:start + frame_size]
         
-        # Detect frequencies in this frame
-        row_freq = None
-        col_freq = None
-        max_row_power = threshold
-        max_col_power = threshold
+        # Apply window function to reduce spectral leakage
+        window = np.hanning(len(frame))
+        frame = frame * window
         
-        # Check row frequencies
+        # Calculate magnitudes for all frequencies
+        row_magnitudes = {}
+        col_magnitudes = {}
+        
         for freq in ROW_FREQUENCIES:
-            power = goertzel_algorithm(frame, sample_rate, freq)
-            if power > max_row_power:
-                max_row_power = power
-                row_freq = freq
+            row_magnitudes[freq] = goertzel_algorithm(frame, sample_rate, freq)
         
-        # Check column frequencies
         for freq in COL_FREQUENCIES:
-            power = goertzel_algorithm(frame, sample_rate, freq)
-            if power > max_col_power:
-                max_col_power = power
-                col_freq = freq
+            col_magnitudes[freq] = goertzel_algorithm(frame, sample_rate, freq)
         
-        # If both frequencies detected, we have a tone
-        if row_freq and col_freq:
-            tone = DTMF_FREQUENCIES.get((row_freq, col_freq))
-            if tone:
-                if current_tone != tone:
-                    current_tone = tone
-                    silent_frames = 0
-                    sequence.append(tone)
-        else:
-            # Silence detected
+        # Find the strongest frequencies
+        max_row_freq = max(row_magnitudes, key=row_magnitudes.get)
+        max_col_freq = max(col_magnitudes, key=col_magnitudes.get)
+        
+        max_row_mag = row_magnitudes[max_row_freq]
+        max_col_mag = col_magnitudes[max_col_freq]
+        
+        # Calculate average magnitude to set dynamic threshold
+        avg_row_mag = np.mean(list(row_magnitudes.values()))
+        avg_col_mag = np.mean(list(col_magnitudes.values()))
+        
+        # Dynamic threshold based on signal strength
+        row_threshold = avg_row_mag * 2.0  # Row frequency must be 2x average
+        col_threshold = avg_col_mag * 2.0  # Column frequency must be 2x average
+        
+        # Check if we have valid DTMF tone
+        if max_row_mag > row_threshold and max_col_mag > col_threshold:
+            current_tone = DTMF_FREQUENCIES.get((max_row_freq, max_col_freq))
+            
             if current_tone:
-                silent_frames += 1
-                if silent_frames >= required_silent_frames:
-                    current_tone = None
+                if current_tone == previous_tone:
+                    tone_count += 1
+                else:
+                    # New tone detected
+                    if previous_tone and tone_count >= min_tone_duration:
+                        sequence.append(previous_tone)
+                        print(f"Detected tone: {previous_tone} (duration: {tone_count} frames)")
+                    
+                    previous_tone = current_tone
+                    tone_count = 1
+                    silence_count = 0
+        else:
+            # Silence or noise
+            silence_count += 1
+            if silence_count >= min_silence_duration and previous_tone and tone_count >= min_tone_duration:
+                sequence.append(previous_tone)
+                print(f"Detected tone: {previous_tone} (duration: {tone_count} frames)")
+                previous_tone = None
+                tone_count = 0
+        
+        # Progress indicator
+        if i % 100 == 0:
+            progress = (i / total_frames) * 100
+            print(f"Processing: {progress:.1f}%", end='\r')
     
+    # Handle last tone if still active
+    if previous_tone and tone_count >= min_tone_duration:
+        sequence.append(previous_tone)
+        print(f"Detected tone: {previous_tone} (duration: {tone_count} frames)")
+    
+    print(f"\nDetected {len(sequence)} tones")
     return ''.join(sequence)
-
-def clean_sequence(raw_sequence):
-    """
-    Clean up the detected sequence by removing duplicates caused by continuous detection
-    """
-    result = ""
-    prev_char = None
-    
-    for char in raw_sequence:
-        if char != prev_char:
-            result += char
-            prev_char = char
-    
-    return result
 
 def solve_challenge(access_token):
     """Solve the touch tone dialing challenge"""
-    # Get problem data
-    problem_url = f"https://hackattic.com/challenges/touch_tone_dialing/problem?access_token={access_token}"
-    response = requests.get(problem_url)
-    if response.status_code != 200:
-        raise Exception(f"Failed to get problem: {response.status_code}")
+    try:
+        # Get problem data
+        problem_url = f"https://hackattic.com/challenges/touch_tone_dialing/problem?access_token={access_token}"
+        print(f"Fetching problem from: {problem_url}")
+        response = requests.get(problem_url)
+        if response.status_code != 200:
+            raise Exception(f"Failed to get problem: {response.status_code}")
+        
+        problem_data = response.json()
+        wav_url = problem_data['wav_url']
+        print(f"Downloading WAV file from: {wav_url}")
+        
+        # Download and process the WAV file
+        wav_buffer = download_wav_file(wav_url)
+        sample_rate, audio_data = wavfile.read(wav_buffer)
+        print(f"Audio loaded: {audio_data.shape}, sample rate: {sample_rate}")
+        
+        # Convert to mono if stereo
+        if len(audio_data.shape) > 1:
+            audio_data = np.mean(audio_data, axis=1)
+            print("Converted stereo to mono")
+        
+        # Normalize audio data
+        audio_data = audio_data.astype(float)
+        if np.max(np.abs(audio_data)) > 0:
+            audio_data = audio_data / np.max(np.abs(audio_data))
+            print("Audio normalized")
+        
+        # Detect DTMF tones
+        sequence = detect_dtmf_tones(audio_data, sample_rate)
+        
+        print(f"Final detected sequence: {sequence}")
+        
+        if not sequence:
+            print("No sequence detected! Trying with different parameters...")
+            return {"error": "No sequence detected"}
+        
+        # Submit solution
+        solution = {"sequence": sequence}
+        solve_url = f"https://hackattic.com/challenges/touch_tone_dialing/solve?access_token={access_token}" + "&playground=1"
+        print(f"Submitting solution: {solution}")
+        solution_response = requests.post(solve_url, json=solution)
+        
+        return solution_response.json()
     
-    problem_data = response.json()
-    wav_url = problem_data['wav_url']
-    
-    # Download and process the WAV file
-    wav_buffer = download_wav_file(wav_url)
-    sample_rate, audio_data = wavfile.read(wav_buffer)
-    
-    # Convert to mono if stereo
-    if len(audio_data.shape) > 1:
-        audio_data = np.mean(audio_data, axis=1)
-    
-    # Normalize audio data
-    audio_data = audio_data.astype(float)  # Ensure float for division
-    if np.max(np.abs(audio_data)) > 0:  # Avoid division by zero
-        audio_data = audio_data / np.max(np.abs(audio_data))
-    
-    # Detect DTMF tones
-    raw_sequence = detect_dtmf_tones(audio_data, sample_rate)
-    sequence = clean_sequence(raw_sequence)
-    
-    print(f"Detected sequence: {sequence}")
-    
-    # Submit solution
-    solution = {"sequence": sequence}
-    solve_url = f"https://hackattic.com/challenges/touch_tone_dialing/solve?access_token={access_token}"
-    solution_response = requests.post(solve_url, json=solution)
-    
-    return solution_response.json()
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     access_token = os.getenv("ACCESS_TOKEN")
