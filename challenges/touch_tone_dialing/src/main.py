@@ -2,9 +2,11 @@ import os
 import requests
 import numpy as np
 from scipy.io import wavfile
-import tempfile
-import json
 import io
+
+##############################################################################
+## This code was created using GitHub Copilot. I have no idea how it works! ##
+##############################################################################
 
 # Define DTMF frequencies according to standard
 # DTMF uses a grid of frequencies:
