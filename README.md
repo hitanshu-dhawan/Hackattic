@@ -23,7 +23,7 @@ Replace `your_access_token_here` with your actual token.
 - [x]  Basic face detection
 - [ ]  The one with Redis
 - [x]  Visual basic math
-- [ ]  A global presence
+- [x]  A global presence
 - [x]  WebSocket chit chat
 - [ ]  Collision course
 - [x]  Hosting git
